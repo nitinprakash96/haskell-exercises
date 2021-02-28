@@ -1,4 +1,5 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE StandaloneDeriving #-}
 module Exercises where
 
 
@@ -17,20 +18,24 @@ instance Countable Bool where count x = if x then 1 else 0
 -- things.
 
 data CountableList where
-  -- ...
+  CountableNil :: CountableList
+  CountableCons :: (Show a, Countable a) => a -> CountableList -> CountableList
 
+deriving instance Show CountableList
 
 -- | b. Write a function that takes the sum of all members of a 'CountableList'
 -- once they have been 'count'ed.
 
 countList :: CountableList -> Int
-countList = error "Implement me!"
+countList CountableNil         = 0
+countList (CountableCons x xs) = count x + countList xs
 
 
 -- | c. Write a function that removes all elements whose count is 0.
 
 dropZero :: CountableList -> CountableList
-dropZero = error "Implement me!"
+dropZero CountableNil = CountableNil
+dropZero (CountableCons x xs) = if count x == 0 then dropZero xs else CountableCons x $ dropZero xs
 
 
 -- | d. Can we write a function that removes all the things in the list of type
@@ -48,24 +53,34 @@ filterInts = error "Contemplate me!"
 -- | a. Write a list that can take /any/ type, without any constraints.
 
 data AnyList where
-  -- ...
+  AnyNil  :: AnyList
+  AnyCons :: a -> AnyList -> AnyList
 
 -- | b. How many of the following functions can we implement for an 'AnyList'?
 
 reverseAnyList :: AnyList -> AnyList
-reverseAnyList = undefined
+reverseAnyList = go AnyNil
+  where
+    go :: AnyList -> AnyList -> AnyList
+    go x AnyNil = x
+    go x (AnyCons y xs) = go (AnyCons y x) xs
 
 filterAnyList :: (a -> Bool) -> AnyList -> AnyList
 filterAnyList = undefined
 
 lengthAnyList :: AnyList -> Int
-lengthAnyList = undefined
+lengthAnyList = go 0
+  where
+    go :: Int -> AnyList -> Int
+    go z AnyNil = z
+    go z (AnyCons _ xs) = go (z + 1) xs
 
 foldAnyList :: Monoid m => AnyList -> m
 foldAnyList = undefined
 
 isEmptyAnyList :: AnyList -> Bool
-isEmptyAnyList = undefined
+isEmptyAnyList AnyNil = True 
+isEmptyAnyList _ = False
 
 instance Show AnyList where
   show = error "What about me?"
@@ -94,9 +109,11 @@ transformable2 = TransformWith (uncurry (++)) ("Hello,", " world!")
 
 -- | a. Which type variable is existential inside 'TransformableTo'? What is
 -- the only thing we can do to it?
+-- A. I think it's `input` as it doesn't appear in the resultant type.
 
 -- | b. Could we write an 'Eq' instance for 'TransformableTo'? What would we be
 -- able to check?
+-- Totally. To check on equality.
 
 -- | c. Could we write a 'Functor' instance for 'TransformableTo'? If so, write
 -- it. If not, why not?
@@ -115,13 +132,17 @@ data EqPair where
 -- | a. There's one (maybe two) useful function to write for 'EqPair'; what is
 -- it?
 
+isEqual :: EqPair -> Bool
+isEqual (EqPair a b) = a == b
+
 -- | b. How could we change the type so that @a@ is not existential? (Don't
 -- overthink it!)
+data EqPair' a where
+  EqPair' :: Eq a => a -> a -> EqPair' a
 
 -- | c. If we made the change that was suggested in (b), would we still need a
 -- GADT? Or could we now represent our type as an ADT?
-
-
+-- Loses the Eq constraint
 
 
 
@@ -148,17 +169,23 @@ getInt (IntBox int _) = int
 -- pattern-match:
 
 getInt' :: MysteryBox String -> Int
-getInt' _doSomeCleverPatternMatching = error "Return that value"
+getInt' (StringBox _ (IntBox int _)) = int
 
 -- | b. Write the following function. Again, don't overthink it!
 
 countLayers :: MysteryBox a -> Int
-countLayers = error "Implement me"
+countLayers EmptyBox = 0
+countLayers (IntBox _ _) = 1
+countLayers (StringBox _ _) = 2
+countLayers (BoolBox _ _) = 3
 
 -- | c. Try to implement a function that removes one layer of "Box". For
 -- example, this should turn a BoolBox into a StringBox, and so on. What gets
 -- in our way? What would its type be?
-
+-- DOUBTFUL: If we try writing something like
+-- removeLayer :: MystryBox a -> MystryBox b
+-- we get inside a black box where we can't deduce how a maps to b.
+-- Therefore, we can't really write this method.
 
 
 
@@ -179,6 +206,8 @@ exampleHList = HCons "Tom" (HCons 25 (HCons True HNil))
 -- should be /safe/: you can use the type signature to tell GHC that you won't
 -- need to pattern-match on HNil, and therefore the return type shouldn't be
 -- wrapped in a 'Maybe'!
+head :: HList (a, b) -> a
+head (HCons x _) = x 
 
 -- | b. Currently, the tuples are nested. Can you pattern-match on something of
 -- type @HList (Int, String, Bool, ())@? Which constructor would work?
