@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Exercises where
 
-
+import Data.Foldable (fold)
 
 
 
@@ -80,7 +80,7 @@ foldAnyList :: Monoid m => AnyList -> m
 foldAnyList = undefined
 
 isEmptyAnyList :: AnyList -> Bool
-isEmptyAnyList AnyNil = True 
+isEmptyAnyList AnyNil = True
 isEmptyAnyList _ = False
 
 instance Show AnyList where
@@ -208,7 +208,7 @@ exampleHList = HCons "Tom" (HCons 25 (HCons True HNil))
 -- need to pattern-match on HNil, and therefore the return type shouldn't be
 -- wrapped in a 'Maybe'!
 head :: HList (a, b) -> a
-head (HCons x _) = x 
+head (HCons x _) = x
 
 -- | b. Currently, the tuples are nested. Can you pattern-match on something of
 -- type @HList (Int, String, Bool, ())@? Which constructor would work?
@@ -291,7 +291,7 @@ getSeconds = go []
 
 -- TODO: Fix this.
 foldValues :: (Monoid a, Monoid b) => AlternatingList a b -> (a, b)
-foldValues xs = (foldMap id firsts, foldMap id seconds)
+foldValues xs = (fold firsts, fold seconds)
   where
     firsts  = getFirsts xs
     seconds = getSeconds xs
@@ -317,7 +317,11 @@ data Expr a where
 -- | a. Implement the following function and marvel at the typechecker:
 
 eval :: Expr a -> a
-eval = error "Implement me"
+eval (Equals ex1 ex2) = eval ex1 == eval ex2
+eval (Add ex1 ex2) = eval ex1 + eval ex2
+eval (If ex1 ex2 ex3) = if eval ex1 then eval ex2 else eval ex3
+eval (IntValue i) = i
+eval (BoolValue b) = b
 
 -- | b. Here's an "untyped" expression language. Implement a parser from this
 -- into our well-typed language. Note that (until we cover higher-rank
