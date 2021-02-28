@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Exercises where
 
 
@@ -233,18 +234,22 @@ data Branch left centre right
 -- /tree/. None of the variables should be existential.
 
 data HTree a where
-  -- ...
+  HEmpty :: HTree Empty
+  HBranch :: HTree l -> c -> HTree r -> HTree (Branch l c r)
 
 -- | b. Implement a function that deletes the left subtree. The type should be
 -- strong enough that GHC will do most of the work for you. Once you have it,
 -- try breaking the implementation - does it type-check? If not, why not?
+deleteLeft :: HTree (Branch l c r) -> HTree (Branch Empty c r)
+deleteLeft (HBranch _ c r) = HBranch HEmpty c r
 
 -- | c. Implement 'Eq' for 'HTree's. Note that you might have to write more
 -- than one to cover all possible HTrees. You might also need an extension or
 -- two, so look out for something... flexible... in the error messages!
 -- Recursion is your friend here - you shouldn't need to add a constraint to
 -- the GADT!
-
+instance Eq (HTree Empty) where
+  (==) _ _ = True
 
 
 
@@ -260,21 +265,37 @@ data HTree a where
 -- @
 
 data AlternatingList a b where
-  -- ...
+  ANil :: AlternatingList a b
+  ACons :: a -> AlternatingList b a -> AlternatingList a b
 
 -- | b. Implement the following functions.
 
 getFirsts :: AlternatingList a b -> [a]
-getFirsts = error "Implement me!"
+getFirsts = go []
+  where
+    go :: [a] -> AlternatingList a b -> [a]
+    go x ANil = x
+    go x (ACons _ ANil) = x
+    go x (ACons p (ACons _ r)) = go (p : x) r
 
 getSeconds :: AlternatingList a b -> [b]
-getSeconds = error "Implement me, too!"
+getSeconds = go []
+  where
+    go :: [a] -> AlternatingList b a -> [a]
+    go x ANil = x
+    go x (ACons _ ANil) = x
+    go x (ACons _ (ACons p r)) = go (p : x) r
 
 -- | c. One more for luck: write this one using the above two functions, and
 -- then write it such that it only does a single pass over the list.
 
+-- TODO: Fix this.
 foldValues :: (Monoid a, Monoid b) => AlternatingList a b -> (a, b)
-foldValues = error "Implement me, three!"
+foldValues xs = (foldMap id firsts, foldMap id seconds)
+  where
+    firsts  = getFirsts xs
+    seconds = getSeconds xs
+
 
 
 
