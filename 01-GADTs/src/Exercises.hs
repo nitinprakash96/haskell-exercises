@@ -1,6 +1,6 @@
+{-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE FlexibleInstances #-}
 module Exercises where
 
 import Data.Foldable (fold)
@@ -63,7 +63,7 @@ reverseAnyList :: AnyList -> AnyList
 reverseAnyList = go AnyNil
   where
     go :: AnyList -> AnyList -> AnyList
-    go x AnyNil = x
+    go x AnyNil         = x
     go x (AnyCons y xs) = go (AnyCons y x) xs
 
 filterAnyList :: (a -> Bool) -> AnyList -> AnyList
@@ -73,7 +73,7 @@ lengthAnyList :: AnyList -> Int
 lengthAnyList = go 0
   where
     go :: Int -> AnyList -> Int
-    go z AnyNil = z
+    go z AnyNil         = z
     go z (AnyCons _ xs) = go (z + 1) xs
 
 foldAnyList :: Monoid m => AnyList -> m
@@ -81,7 +81,7 @@ foldAnyList = undefined
 
 isEmptyAnyList :: AnyList -> Bool
 isEmptyAnyList AnyNil = True
-isEmptyAnyList _ = False
+isEmptyAnyList _      = False
 
 instance Show AnyList where
   show = error "What about me?"
@@ -175,10 +175,10 @@ getInt' (StringBox _ (IntBox int _)) = int
 -- | b. Write the following function. Again, don't overthink it!
 
 countLayers :: MysteryBox a -> Int
-countLayers EmptyBox = 0
-countLayers (IntBox _ _) = 1
+countLayers EmptyBox        = 0
+countLayers (IntBox _ _)    = 1
 countLayers (StringBox _ _) = 2
-countLayers (BoolBox _ _) = 3
+countLayers (BoolBox _ _)   = 3
 
 -- | c. Try to implement a function that removes one layer of "Box". For
 -- example, this should turn a BoolBox into a StringBox, and so on. What gets
@@ -274,16 +274,16 @@ getFirsts :: AlternatingList a b -> [a]
 getFirsts = go []
   where
     go :: [a] -> AlternatingList a b -> [a]
-    go x ANil = x
-    go x (ACons _ ANil) = x
+    go x ANil                  = x
+    go x (ACons _ ANil)        = x
     go x (ACons p (ACons _ r)) = go (p : x) r
 
 getSeconds :: AlternatingList a b -> [b]
 getSeconds = go []
   where
     go :: [a] -> AlternatingList b a -> [a]
-    go x ANil = x
-    go x (ACons _ ANil) = x
+    go x ANil                  = x
+    go x (ACons _ ANil)        = x
     go x (ACons _ (ACons p r)) = go (p : x) r
 
 -- | c. One more for luck: write this one using the above two functions, and
@@ -318,10 +318,10 @@ data Expr a where
 
 eval :: Expr a -> a
 eval (Equals ex1 ex2) = eval ex1 == eval ex2
-eval (Add ex1 ex2) = eval ex1 + eval ex2
+eval (Add ex1 ex2)    = eval ex1 + eval ex2
 eval (If ex1 ex2 ex3) = if eval ex1 then eval ex2 else eval ex3
-eval (IntValue i) = i
-eval (BoolValue b) = b
+eval (IntValue i)     = i
+eval (BoolValue b)    = b
 
 -- | b. Here's an "untyped" expression language. Implement a parser from this
 -- into our well-typed language. Note that (until we cover higher-rank
